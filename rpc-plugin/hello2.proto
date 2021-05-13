@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package myUserInfo;
+option go_package = "myPackage/userInfo";
+
+
+message Input {
+  string name = 1;
+  int32 id = 2;
+}
+
+message Output{
+  int32 id = 1;
+  string name = 2;
+  string address = 3;
+  string phone = 4;
+}
+
+service UserService {
+  rpc getUserInfo (Input) returns (Output);
+}
