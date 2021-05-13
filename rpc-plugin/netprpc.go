@@ -5,6 +5,10 @@
 package main
 
 import (
+	"bytes"
+	"log"
+	"text/template"
+
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/golang/protobuf/protoc-gen-go/generator"
 )
@@ -30,6 +34,24 @@ func (p *netrpcPlugin) Generate(file *generator.FileDescriptor) {
 	}
 }
 
+func (p *netrpcPlugin) genImportCode(file *generator.FileDescriptor) {
+	p.P(`import "net/rpc"`)
+}
+
+func (p *netrpcPlugin) genServiceCode(svc *descriptor.ServiceDescriptorProto) {
+	//p.P("// TODO: service code, Name = " + svc.GetName())
+	spec := p.buildServiceSpec(svc)
+
+	var buf bytes.Buffer
+	t := template.Must(template.New("").Parse(tmplService))
+	err := t.Execute(&buf, spec)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	p.P(buf.String())
+}
+
 type ServiceSpec struct {
 	ServiceName string
 	MethodList  []ServiceMethodSpec
@@ -39,14 +61,6 @@ type ServiceMethodSpec struct {
 	MethodName     string
 	InputTypeName  string
 	OutputTypeName string
-}
-
-func (p *netrpcPlugin) genImportCode(file *generator.FileDescriptor) {
-	p.P(`import "net/rpc"`)
-}
-
-func (p *netrpcPlugin) genServiceCode(svc *descriptor.ServiceDescriptorProto) {
-	p.P("// TODO: service code, Name = " + svc.GetName())
 }
 
 func (p *netrpcPlugin) buildServiceSpec(svc *descriptor.ServiceDescriptorProto) *ServiceSpec {
